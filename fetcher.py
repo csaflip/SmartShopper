@@ -12,6 +12,12 @@ def load_config():
         data = json.load(infile)
     return data
 
+def write_to_file(search_data):
+    with open('results.txt', 'a') as outfile:
+        for result in search_data:
+            outfile.write(result)
+        outfile.write('------------------------\n' )
+
 
 def get_page_source(url):
     browser = webdriver.Firefox()
@@ -32,7 +38,7 @@ def find_matches(patterns, names):
     for name in names:
         for pattern in patterns:
             if re.search(pattern, name.text, re.IGNORECASE) is not None:
-                matched_names.append(name.text + " " + name['href'])
+                matched_names.append(name.text + " " + name['href'] + '\n')
     return matched_names
 
 
@@ -45,7 +51,7 @@ def find_ebay_matches(patterns, names):
 
         for pattern in patterns:
             if re.search(pattern, name.text, re.IGNORECASE) is not None:
-                matched_names.append((price, name.text + " " + name.parent['href']))
+                matched_names.append((price, name.text + " " + name.parent['href'] +'\n'))
 
     matched_names = sorted(matched_names, key=lambda x: x[0])  # sort by key (price)
     return matched_names
@@ -60,10 +66,12 @@ def search_craigslist(config_data):
         cl_patterns = config_data['cl_patterns']
 
         craigslist_matches = find_matches(cl_patterns, cl_names)
-        for match in craigslist_matches:
-            print(match)
-        print('------------------------------------------------')
 
+        return_data = []
+        for match in craigslist_matches:
+            return_data.append(match)
+            
+        write_to_file(return_data)
 
 def search_ebay(config_data):
     for url in config_data['ebay_urls']:
@@ -74,10 +82,11 @@ def search_ebay(config_data):
         ebay_patterns = config_data['ebay_patterns']
 
         ebay_matches = find_ebay_matches(ebay_patterns, ebay_names)
-
+        
+        return_data = []
         for match in ebay_matches:
-            print("$" + str(match[0]) + ": " + match[1])
-        print('----------------------------------------------------')
+            return_data.append("$" + str(match[0]) + ": " + match[1])
+        write_to_file(return_data)
 
 
 
